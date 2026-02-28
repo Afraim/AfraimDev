@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Afraim's Portfolio</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game-shell">
+    <header class="top-bar">
+      <h1>Afraim's Portfolio Art Exhibition</h1>
+      <p class="hint">Desktop: keyboard + mouse. Mobile/Tablet: use the fixed bottom-left joystick, then tap cards.</p>
+      <div id="progress" aria-live="polite">Exhibits Viewed: 0</div>
+    </header>
+
+    <main class="game-area">
+      <canvas id="gameCanvas" width="960" height="540" aria-label="3D portfolio maze canvas"></canvas>
+    </main>
+  </div>
+
+  <div id="popupBackdrop" class="popup-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+    <article class="popup-card">
+      <div id="popupImage" class="popup-image" aria-hidden="true"></div>
+      <h2 id="popupTitle"></h2>
+      <p id="popupBody"></p>
+      <a id="popupLink" class="popup-link hidden" href="#" target="_blank" rel="noopener noreferrer">Open link</a>
+      <button id="popupContinue" class="popup-continue">Continue</button>
+      <p class="popup-note">Press Spacebar or tap Continue</p>
+    </article>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
