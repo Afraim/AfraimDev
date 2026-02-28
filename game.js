@@ -37,6 +37,7 @@ let suppressCardClickUntil = 0;
 const TILE = 64;
 const FOV = Math.PI / 3;
 const MAX_DEPTH = TILE * 18;
+const RAY_COLUMN_WIDTH = 2;
 const MAZE_WIDTH = 45;
 const MAZE_HEIGHT = 29;
 
@@ -827,12 +828,12 @@ function drawWalls() {
   const projection = (canvas.width / 2) / Math.tan(FOV / 2);
   depthBuffer = new Array(numRays);
 
-  for (let col = 0; col < numRays; col += 1) {
+  for (let col = 0; col < numRays; col += RAY_COLUMN_WIDTH) {
     const rayAngle = player.angle - FOV / 2 + (col / numRays) * FOV;
     const ray = castRay(rayAngle);
     const correctedDistance = ray.distance * Math.cos(rayAngle - player.angle);
-    const wallHeight = (TILE / Math.max(correctedDistance, 1)) * projection;
-    const wallTop = (canvas.height - wallHeight) / 2;
+    const wallHeight = Math.ceil((TILE / Math.max(correctedDistance, 1)) * projection);
+    const wallTop = Math.floor((canvas.height - wallHeight) / 2);
     const shade = Math.max(40, 230 - correctedDistance * 0.28);
 
     const gradient = ctx.createLinearGradient(0, wallTop, 0, wallTop + wallHeight);
@@ -840,8 +841,11 @@ function drawWalls() {
     gradient.addColorStop(1, `rgb(${Math.max(20, shade - 40)}, ${Math.max(30, shade - 15)}, ${shade})`);
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(col, wallTop, 1, wallHeight);
-    depthBuffer[col] = correctedDistance;
+    const drawWidth = Math.min(RAY_COLUMN_WIDTH + 1, numRays - col);
+    ctx.fillRect(col, wallTop, drawWidth, wallHeight);
+    for (let i = 0; i < drawWidth; i += 1) {
+      depthBuffer[col + i] = correctedDistance;
+    }
   }
 }
 
