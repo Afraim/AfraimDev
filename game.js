@@ -824,43 +824,24 @@ function drawSkyAndFloor() {
 function drawWalls() {
   drawSkyAndFloor();
   const numRays = canvas.width;
-  let turnInput = 0;
-  let moveInput = 0;
+  const projection = (canvas.width / 2) / Math.tan(FOV / 2);
+  depthBuffer = new Array(numRays);
 
-  if (keys.KeyA || keys.ArrowLeft) {
-    turnInput -= 1;
-  }
-  if (keys.KeyD || keys.ArrowRight) {
-    turnInput += 1;
-  }
-  if (keys.KeyW || keys.ArrowUp) {
-    moveInput += 1;
-  }
-  if (keys.KeyS || keys.ArrowDown) {
-    moveInput -= 1;
-  }
+  for (let col = 0; col < numRays; col += 1) {
+    const rayAngle = player.angle - FOV / 2 + (col / numRays) * FOV;
+    const ray = castRay(rayAngle);
+    const correctedDistance = ray.distance * Math.cos(rayAngle - player.angle);
+    const wallHeight = (TILE / Math.max(correctedDistance, 1)) * projection;
+    const wallTop = (canvas.height - wallHeight) / 2;
+    const shade = Math.max(40, 230 - correctedDistance * 0.28);
 
-  if (joystick.active) {
-    turnInput += joystick.inputX;
-    moveInput += -joystick.inputY;
-  }
+    const gradient = ctx.createLinearGradient(0, wallTop, 0, wallTop + wallHeight);
+    gradient.addColorStop(0, `rgb(${shade}, ${shade + 15}, ${Math.min(255, shade + 35)})`);
+    gradient.addColorStop(1, `rgb(${Math.max(20, shade - 40)}, ${Math.max(30, shade - 15)}, ${shade})`);
 
-  turnInput = Math.max(-1, Math.min(1, turnInput));
-  moveInput = Math.max(-1, Math.min(1, moveInput));
-
-  if (Math.abs(turnInput) > 0.01) {
-    player.angle += player.turnSpeed * turnInput;
-  }
-
-  player.angle = normalizeAngle(player.angle);
-
-  if (Math.abs(moveInput) > 0.01) {
-    const forwardX = Math.cos(player.angle);
-    const forwardY = Math.sin(player.angle);
-    const speed = player.moveSpeed * moveInput;
-    const nextX = player.x + forwardX * speed;
-    const nextY = player.y + forwardY * speed;
-    tryMove(nextX, nextY);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(col, wallTop, 1, wallHeight);
+    depthBuffer[col] = correctedDistance;
   }
 }
 
@@ -1064,9 +1045,12 @@ function setupMouseCardClick() {
 
 function setupKeyboard() {
   window.addEventListener('keydown', (event) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.code)) {
+      event.preventDefault();
+    }
+
     if (popupOpen) {
       if (event.code === 'Space') {
-        event.preventDefault();
         hidePopup();
         return;
       }
